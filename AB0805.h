@@ -28,12 +28,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ===============================================
 */
+#pragma once
+#include "Arduino.h"
+#include "i2cMethods.h"
 
 #ifndef _AB0805_H_
 #define _AB0805_H_
-
-#include "I2Cdev.h"
-
 
 #define AB0805_ADDRESS              0x69 // this device only has one address
 #define AB0805_DEFAULT_ADDRESS      0x69

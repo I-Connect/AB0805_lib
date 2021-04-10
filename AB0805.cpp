@@ -55,9 +55,9 @@ void AB0805::initialize() {
     uint8_t stopClk = 0x91;
     uint8_t allowOscEdit = 0xA1;
     uint8_t xtOscSel = 0x08;
-    I2Cdev::writeByte(devAddr, AB0805_RA_CONTROL1, stopClk);      //stops clock
-    I2Cdev::writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);  //Allows edits to osc. cntrl register (0x1C)
-    I2Cdev::writeByte(devAddr, AB0805_RA_OSC_CONTROL, xtOscSel);   //Crystal used (switch to RC if XT osc failure)
+    writeByte(devAddr, AB0805_RA_CONTROL1, stopClk);      //stops clock
+    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);  //Allows edits to osc. cntrl register (0x1C)
+    writeByte(devAddr, AB0805_RA_OSC_CONTROL, xtOscSel);   //Crystal used (switch to RC if XT osc failure)
     
 }
 
@@ -66,80 +66,85 @@ void AB0805::initialize() {
  * @return True if connection is valid, false otherwise
  */
 bool AB0805::testConnection() {
-    if (I2Cdev::readByte(devAddr, AB0805_RA_ID0 , buffer) == 0x08) {
+    uint8_t buff;
+    byte status = readByte(devAddr, AB0805_RA_ID0 , &buff);
+    log_d("rtc status: %d", status);
+    if ( status == 0x08) {
         return true;
     }
     return false;
 }
 
 void AB0805::startClock() {
-    I2Cdev::writeBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_STOP_BIT, 0);
+    writeBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_STOP_BIT, 0);
     }
 
 void AB0805::stopClock() {
-    I2Cdev::writeBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_STOP_BIT, 1);
+    writeBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_STOP_BIT, 1);
     }
 void AB0805::useRcOsc() {
     uint8_t allowOscEdit = 0xA1;
-    I2Cdev::writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);  //Allows edits to osc. cntrl register (0x1C)
-    I2Cdev::writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_OSC_SEL, 1);
+    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);  //Allows edits to osc. cntrl register (0x1C)
+    writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_OSC_SEL, 1);
     }
 
 // HUNDREDTHS register -- only valid with XT oscillator   
 uint16_t AB0805::getHundredths() {
-    I2Cdev::readByte(devAddr, AB0805_RA_HUNDREDTHS, buffer);
+    readByte(devAddr, AB0805_RA_HUNDREDTHS, buffer);
     return (buffer[0] & 0x0F) + ((buffer[0] & 0xF0) >> 4) * 10;
 }
 void AB0805::setHundredths(uint16_t hundredths) {
     if (hundredths > 99) return;
     uint8_t value = ((hundredths/ 10) << 4) + (hundredths % 10);
-    I2Cdev::writeByte(devAddr, AB0805_RA_HUNDREDTHS, value);
+    writeByte(devAddr, AB0805_RA_HUNDREDTHS, value);
 }
 
 // SECONDS register
 uint8_t AB0805::getSeconds() {
     // Byte: [7 = CH] [6:4 = 10SEC] [3:0 = 1SEC]
-    I2Cdev::readByte(devAddr, AB0805_RA_SECONDS, buffer);
+    readByte(devAddr, AB0805_RA_SECONDS, buffer);
     return (buffer[0] & 0x0F) + ((buffer[0] & 0x70) >> 4) * 10;
 }
 void AB0805::setSeconds(uint8_t seconds) {
     if (seconds > 59) return;
     uint8_t value = 0x00 + ((seconds / 10) << 4) + (seconds % 10);
-    I2Cdev::writeByte(devAddr, AB0805_RA_SECONDS, value);
+    writeByte(devAddr, AB0805_RA_SECONDS, value);
 }
 
 // MINUTES register
 uint8_t AB0805::getMinutes() {
     // Byte: [7 = 0] [6:4 = 10MIN] [3:0 = 1MIN]
-    I2Cdev::readByte(devAddr, AB0805_RA_MINUTES, buffer);
+    readByte(devAddr, AB0805_RA_MINUTES, buffer);
     return (buffer[0] & 0x0F) + ((buffer[0] & 0x70) >> 4) * 10;
 
 }
 void AB0805::setMinutes(uint8_t minutes) {
     if (minutes > 59) return;
     uint8_t value = ((minutes / 10) << 4) + (minutes % 10);
-    I2Cdev::writeByte(devAddr, AB0805_RA_MINUTES, value);
+    writeByte(devAddr, AB0805_RA_MINUTES, value);
 }
 
 // HOURS register
 uint8_t AB0805::getMode() {
-    I2Cdev::readBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_12OR24_BIT, buffer);
-    mode12 = buffer[0];
-    return buffer[0];
+    uint8_t buff;
+    readBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_12OR24_BIT, &buff);
+    mode12 = buff;
+    return buff;
 }
 void AB0805::setMode(uint8_t mode) {
-    I2Cdev::writeBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_12OR24_BIT, mode);
+    writeBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_12OR24_BIT, mode);
 }
 uint8_t AB0805::getAMPM() {
-    I2Cdev::readBit(devAddr, AB0805_RA_HOURS, AB0805_HOURS_AMPM_BIT, buffer);
-    return buffer[0];
+    uint8_t buff;
+    readBit(devAddr, AB0805_RA_HOURS, AB0805_HOURS_AMPM_BIT, &buff);
+    return buff;
 }
 //0 = AM Hours, 1 = PM Hours
 void AB0805::setAMPM(uint8_t ampm) {
-    I2Cdev::writeBit(devAddr, AB0805_RA_HOURS, AB0805_HOURS_AMPM_BIT, ampm);
+    writeBit(devAddr, AB0805_RA_HOURS, AB0805_HOURS_AMPM_BIT, ampm);
 }
 uint8_t AB0805::getHours12() {
-    I2Cdev::readByte(devAddr, AB0805_RA_HOURS, buffer);
+    readByte(devAddr, AB0805_RA_HOURS, buffer);
     mode12 = getMode();
     if (mode12) {
         // bit 6 is high, 12-hour mode
@@ -163,7 +168,7 @@ void AB0805::setHours12(uint8_t hours, uint8_t ampm) {
         // Byte: [5 = AM/PM] [4 = 10HR] [3:0 = 1HR]
         if (ampm > 0) ampm = 0x20;
         uint8_t value = ampm + ((hours / 10) << 4) + (hours % 10);
-        I2Cdev::writeByte(devAddr, AB0805_RA_HOURS, value);
+        writeByte(devAddr, AB0805_RA_HOURS, value);
     } else {
         // bit 6 is low, 24-hour mode (default)
         // Byte: [5:4 = 10HR] [3:0 = 1HR]
@@ -171,13 +176,14 @@ void AB0805::setHours12(uint8_t hours, uint8_t ampm) {
         if (hours == 0) hours = 12; // 12 AM
         else if (hours == 24) hours = 12; // 12 PM, after +12 adjustment
         uint8_t value = ((hours / 10) << 4) + (hours % 10);
-        I2Cdev::writeByte(devAddr, AB0805_RA_HOURS, value);
+        writeByte(devAddr, AB0805_RA_HOURS, value);
     }
 }
 uint8_t AB0805::getHours24() {
-    I2Cdev::readByte(devAddr, AB0805_RA_HOURS, buffer);
+    readByte(devAddr, AB0805_RA_HOURS, buffer);
     mode12 = getMode();
     if (mode12) {
+        log_d("12");
         // bit 6 is high, 12-hour mode
         // Byte: [5 = AM/PM] [4 = 10HR] [3:0 = 1HR]
         uint8_t hours = (buffer[0] & 0x0F) + ((buffer[0] & 0x10) >> 4) * 10;
@@ -194,7 +200,7 @@ uint8_t AB0805::getHours24() {
     } else {
         // bit 6 is low, 24-hour mode (default)
         // Byte: [5:4 = 10HR] [3:0 = 1HR]
-        return (buffer[0] & 0x0F) + ((buffer[0] & 0x30) >> 4) * 10;
+        return (buffer[0] & 0x0F) + ((buffer[0] & 0x30) >>4) * 10;
     }
 }
 void AB0805::setHours24(uint8_t hours) {
@@ -207,58 +213,58 @@ void AB0805::setHours24(uint8_t hours) {
         if (hours > 12) hours -= 12;
         else if (hours == 0) hours = 12;
         uint8_t value = ampm + ((hours / 10) << 4) + (hours % 10);
-        I2Cdev::writeByte(devAddr, AB0805_RA_HOURS, value);
+        writeByte(devAddr, AB0805_RA_HOURS, value);
     } else {
         // bit 6 is low, 24-hour mode (default)
         // Byte: [5:4 = 10HR] [3:0 = 1HR]
         uint8_t value = ((hours / 10) << 4) + (hours % 10);
-        I2Cdev::writeByte(devAddr, AB0805_RA_HOURS, value);
+        writeByte(devAddr, AB0805_RA_HOURS, value);
     }
 }
 
 // DAY register
 uint8_t AB0805::getDayOfWeek() {
-    I2Cdev::readBits(devAddr, AB0805_RA_DAY, AB0805_DAY_BIT, AB0805_DAY_LENGTH, buffer);
+    readBits(devAddr, AB0805_RA_DAY, AB0805_DAY_BIT, AB0805_DAY_LENGTH, buffer);
     return buffer[0];
 }
 void AB0805::setDayOfWeek(uint8_t dow) {
     if (dow < 1 || dow > 7) return;
-    I2Cdev::writeBits(devAddr, AB0805_RA_DAY, AB0805_DAY_BIT, AB0805_DAY_LENGTH, dow);
+    writeBits(devAddr, AB0805_RA_DAY, AB0805_DAY_BIT, AB0805_DAY_LENGTH, dow);
 }
 
 // DATE register
 uint8_t AB0805::getDay() {
     // Byte: [7:6 = 0] [5:4 = 10DAY] [3:0 = 1DAY]
-    I2Cdev::readByte(devAddr, AB0805_RA_DATE, buffer);
+    readByte(devAddr, AB0805_RA_DATE, buffer);
     return (buffer[0] & 0x0F) + ((buffer[0] & 0x30) >> 4) * 10;
 }
 void AB0805::setDay(uint8_t day) {
     uint8_t value = ((day / 10) << 4) + (day % 10);
-    I2Cdev::writeByte(devAddr, AB0805_RA_DATE, value);
+    writeByte(devAddr, AB0805_RA_DATE, value);
 }
 
 // MONTH register
 uint8_t AB0805::getMonth() {
     // Byte: [7:5 = 0] [4 = 10MONTH] [3:0 = 1MONTH]
-    I2Cdev::readByte(devAddr, AB0805_RA_MONTH, buffer);
+    readByte(devAddr, AB0805_RA_MONTH, buffer);
     return (buffer[0] & 0x0F) + ((buffer[0] & 0x10) >> 4) * 10;
 }
 void AB0805::setMonth(uint8_t month) {
     if (month < 1 || month > 12) return;
     uint8_t value = ((month / 10) << 4) + (month % 10);
-    I2Cdev::writeByte(devAddr, AB0805_RA_MONTH, value);
+    writeByte(devAddr, AB0805_RA_MONTH, value);
 }
 
 // YEAR register
 uint16_t AB0805::getYear() {
-    I2Cdev::readByte(devAddr, AB0805_RA_YEAR, buffer);
+    readByte(devAddr, AB0805_RA_YEAR, buffer);
     return 2000 + (buffer[0] & 0x0F) + ((buffer[0] & 0xF0) >> 4) * 10;
 }
 void AB0805::setYear(uint16_t year) {
     if (year < 2000) return;
     year -= 2000;
     uint8_t value = ((year / 10) << 4) + (year % 10);
-    I2Cdev::writeByte(devAddr, AB0805_RA_YEAR, value);
+    writeByte(devAddr, AB0805_RA_YEAR, value);
 }
 
 
