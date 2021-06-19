@@ -54,11 +54,14 @@ AB0805::AB0805(uint8_t address) {
 void AB0805::initialize() {
     uint8_t stopClk = 0x91;
     uint8_t allowOscEdit = 0xA1;
-    uint8_t xtOscSel = 0x08;
-    writeByte(devAddr, AB0805_RA_CONTROL1, stopClk);      //stops clock
-    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);  //Allows edits to osc. cntrl register (0x1C)
-    writeByte(devAddr, AB0805_RA_OSC_CONTROL, xtOscSel);   //Crystal used (switch to RC if XT osc failure)
-    
+    // uint8_t xtOscSel = 0x08;
+    writeByte(devAddr, AB0805_RA_CONTROL1, stopClk);                            //stops clock
+    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);                     //Allows edits to osc. cntrl register (0x1C)
+    writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_OSC_SEL, 1);    //Use XT Crystal
+    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);
+    writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_FOS, 1);        //switch to RC osc on XT osc failure
+    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);
+    writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_AOS, 1);        //Switch to RC on power from battery
 }
 
 /** Verify the I2C connection.
@@ -81,12 +84,25 @@ void AB0805::startClock() {
 
 void AB0805::stopClock() {
     writeBit(devAddr, AB0805_RA_CONTROL1, AB0805_CONTROL1_STOP_BIT, 1);
-    }
+}
 void AB0805::useRcOsc() {
     uint8_t allowOscEdit = 0xA1;
     writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);  //Allows edits to osc. cntrl register (0x1C)
     writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_OSC_SEL, 1);
-    }
+}
+
+void AB0805::enableAutoCalibrationFilter(){
+    uint8_t allowAfCtrlEdit = 0x9D;
+    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowAfCtrlEdit);  //Allows edits to af. cntrl register (0x26)
+    writeByte(devAddr, AB0805_RA_AF_CONTROL, AB0805_AF_CONTROL_SEL);
+}
+
+void AB0805::enableAutoCalibration(){
+    uint8_t allowOscEdit = 0xA1;
+    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);  //Allows edits to osc. cntrl register (0x1C)
+    //set autocalibration every 17 mins
+    writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_ACAL_1, 1); 
+}
 
 // HUNDREDTHS register -- only valid with XT oscillator   
 uint16_t AB0805::getHundredths() {

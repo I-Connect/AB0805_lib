@@ -60,9 +60,11 @@ THE SOFTWARE.
 #define AB0805_RA_CONTROL2          0x11            //interrupt control
 #define AB0805_RA_OSC_CONTROL       0x1C
 #define AB0805_RA_OSC_STATUS        0x1D
+#define AB0805_RA_AF_CONTROL        0x26            //Autocalibration filter
 //Config Key-written with specific values to access certain registers
 //access Oscillator control (0x1C) -> write 0xA1
 //Software Reset (doesn't update Config Key) -> write 0x3C
+//access AF control (0x26) -> write 0x9D
 #define AB0805_RA_CONFIG_KEY           0X1F
 #define AB0805_RA_ID0                  0X28            //0x08
 #define AB0805_RA_ID1                  0X29            //0x05
@@ -112,6 +114,13 @@ THE SOFTWARE.
 #define AB0805_CONTROL_WRTC           0           //must be 1 to write to time registers
 #define AB0805_OSC_CONTROL_OSC_SEL    7
 
+#define AB0805_AF_CONTROL_SEL         0XA0          //Enable autocalibration filter
+
+#define AB0805_OSC_CONTROL_FOS        3             //Switch to RC on xt osl failure
+#define AB0805_OSC_CONTROL_AOS        4             //Switch to RC on power from battery
+#define AB0805_OSC_CONTROL_ACAL_1     5             //ACAL2:1  and ACAL1:0 : Autocalibrate every 17 mins 
+#define AB0805_OSC_CONTROL_ACAL_2     6             //ACAL2:1  and ACAL1:1 : Autocalibrate every 9 mins
+
 
 class AB0805 {
     public:
@@ -124,6 +133,8 @@ class AB0805 {
         void startClock();
         void stopClock();
         void useRcOsc();
+        void enableAutoCalibrationFilter();
+        void enableAutoCalibration();
 
         // HUNDREDTHS register - only valid with XT oscillator
         uint16_t getHundredths(); // 0-99
