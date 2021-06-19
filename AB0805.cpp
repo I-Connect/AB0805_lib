@@ -57,7 +57,7 @@ void AB0805::initialize() {
     // uint8_t xtOscSel = 0x08;
     writeByte(devAddr, AB0805_RA_CONTROL1, stopClk);                            //stops clock
     writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);                     //Allows edits to osc. cntrl register (0x1C)
-    writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_OSC_SEL, 1);    //Use XT Crystal
+    writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_OSC_SEL, 0);    //Use XT Crystal
     writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);
     writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_FOS, 1);        //switch to RC osc on XT osc failure
     writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);
