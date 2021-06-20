@@ -60,8 +60,8 @@ void AB0805::initialize() {
     writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_OSC_SEL, 0);    //Use XT Crystal
     writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);
     writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_FOS, 1);        //switch to RC osc on XT osc failure
-    writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);
-    writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_AOS, 1);        //Switch to RC on power from battery
+    // writeByte(devAddr, AB0805_RA_CONFIG_KEY, allowOscEdit);
+    // writeBit(devAddr, AB0805_RA_OSC_CONTROL, AB0805_OSC_CONTROL_AOS, 1);        //Switch to RC on power from battery
 }
 
 /** Verify the I2C connection.
