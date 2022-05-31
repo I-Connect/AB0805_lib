@@ -105,7 +105,7 @@ int8_t readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16_t* dat
     Wire.beginTransmission(devAddr);
     Wire.write(regAddr);
     Wire.endTransmission();
-    Wire.beginTransmission(devAddr);
+
     Wire.requestFrom(devAddr, (uint8_t)(length * 2)); // length=words, this wants bytes
 
     bool msb = true; // starts with MSB, then LSB
